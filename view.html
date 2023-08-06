@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <title>ClickItUp • Entries</title>
     <meta charset="utf-8" />
     <meta
@@ -22,3 +23,71 @@
     />
     <link rel="stylesheet" href="CSS/index.css" />
   </head>
+  <body>
+    <div id="data-container"></div>
+    <script>
+      // Function to convert Google Drive links to the correct format
+      function convertLink(link) {
+        // Define the regular expression pattern to match the original link format
+        var regex = /https:\/\/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/;
+      
+        // Use the replace() method with a callback function to convert the link
+        var newLink = link.replace(regex, "https://drive.google.com/uc?export=download&id=$1");
+      
+        return newLink;
+      }
+
+      // Replace CSV_URL with the URL of your CSV file
+      var csvUrl =
+        'https://docs.google.com/spreadsheets/d/e/2PACX-1vSC4PMMLjuF6Egz7IskwSOUtbiWhRDG-zwWMeAyrkzJoMw2zVnOmjqcqwOD4UivQ4K48MoRFmXsZeTO/pub?output=csv';
+
+      // Fetch the CSV data using Fetch API
+      fetch(csvUrl)
+        .then((response) => response.text())
+        .then((csvData) => {
+          // Parse the CSV data
+          var rows = csvData.split('\n');
+          var data = [];
+          // Start processing from the second row (index 1) to ignore the header row (index 0)
+          for (var i = 1; i < rows.length; i++) {
+            var cells = rows[i].split(',');
+            var image = cells[3].trim(); // Assuming the image URL is in the fourth column
+            var name = cells[1].trim();  // Assuming the name is in the second column
+            var department = cells[2].trim();   // Assuming the department is in the third column
+            image = convertLink(image); // Convert the image link to the correct format
+            data.push({ image: image, name: name, department: department });
+          }
+
+          // Process and display the data
+          var container = document.getElementById('data-container');
+          var divContainer = document.createElement('div');
+          divContainer.style.width = "360px";
+          divContainer.style.height = "auto";
+
+          for (var i = 0; i < data.length; i++) {
+            var divEntry = document.createElement('div');
+
+            // Create element for Name
+            var nameElement = document.createElement('p');
+            nameElement.textContent = "Name: " + data[i].name;
+            divEntry.appendChild(nameElement);
+
+            // Create element for Department
+            var departmentElement = document.createElement('p');
+            departmentElement.textContent = "Department: " + data[i].department;
+            divEntry.appendChild(departmentElement);
+
+            // Create element for Image
+            var imageElement = document.createElement('img');
+            imageElement.src = data[i].image;
+            divEntry.appendChild(imageElement);
+
+            divContainer.appendChild(divEntry);
+          }
+
+          container.appendChild(divContainer);
+        })
+        .catch((error) => console.error('Error fetching CSV:', error));
+    </script>
+  </body>
+</html>
